@@ -34,7 +34,11 @@ jobs:
           cd flutter-assignment
           flutter analyze
 
-      - name: Run Tests
+      - name: Run Unit & Widget Tests
         run: |
           cd flutter-assignment
-          flutter test
+          flutter test test/unit_test.dart test/widget_flow_test.dart
+
+      # Golden layout tests are excluded from CI because golden PNG files are
+      # rendered on macOS and pixel output differs on Linux runners.
+      # Run locally with: flutter test test/golden_layout_test.dart
