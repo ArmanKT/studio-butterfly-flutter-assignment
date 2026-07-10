@@ -1,4 +1,6 @@
-class Tenant {
+import 'package:equatable/equatable.dart';
+
+class Tenant extends Equatable {
   final String id;
   final String name;
   final String apiKey;
@@ -24,4 +26,7 @@ class Tenant {
       token: token ?? this.token,
     );
   }
+
+  @override
+  List<Object?> get props => [id, name, apiKey, token];
 }

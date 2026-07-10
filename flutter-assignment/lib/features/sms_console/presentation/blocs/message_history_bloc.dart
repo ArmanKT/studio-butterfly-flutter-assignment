@@ -1,16 +1,23 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:equatable/equatable.dart';
 import '../../../../core/exceptions/api_exceptions.dart';
 import '../../domain/models/sms_models.dart';
 import '../../domain/repositories/sms_repository.dart';
 import '../../data/repositories/network_sms_repository.dart';
 import 'tenant_bloc.dart';
 
-abstract class MessageHistoryEvent {}
+abstract class MessageHistoryEvent extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
 
 class FetchMessageHistory extends MessageHistoryEvent {
   final bool isRefresh;
   FetchMessageHistory({this.isRefresh = false});
+
+  @override
+  List<Object?> get props => [isRefresh];
 }
 
 class LoadMoreMessageHistory extends MessageHistoryEvent {}
@@ -19,7 +26,7 @@ class PollMessageHistoryStatuses extends MessageHistoryEvent {}
 
 enum MessageHistoryStatus { initial, loading, loaded, failure, loadingMore }
 
-class MessageHistoryState {
+class MessageHistoryState extends Equatable {
   final MessageHistoryStatus status;
   final List<SmsMessage> messages;
   final String? nextCursor;
@@ -41,15 +48,19 @@ class MessageHistoryState {
     MessageHistoryStatus? status,
     List<SmsMessage>? messages,
     String? nextCursor,
+    bool clearCursor = false,
     String? error,
   }) {
     return MessageHistoryState(
       status: status ?? this.status,
       messages: messages ?? this.messages,
-      nextCursor: nextCursor ?? this.nextCursor,
+      nextCursor: clearCursor ? null : (nextCursor ?? this.nextCursor),
       error: error ?? this.error,
     );
   }
+
+  @override
+  List<Object?> get props => [status, messages, nextCursor, error];
 }
 
 class MessageHistoryBloc extends Bloc<MessageHistoryEvent, MessageHistoryState> {
@@ -72,6 +83,9 @@ class MessageHistoryBloc extends Bloc<MessageHistoryEvent, MessageHistoryState> 
     _tenantSubscription = _tenantBloc.stream.listen((tenantState) {
       add(FetchMessageHistory(isRefresh: true));
     });
+
+    // Fetch initial history for the active tenant on startup
+    add(FetchMessageHistory());
   }
 
   Future<void> _onFetchMessageHistory(FetchMessageHistory event, Emitter<MessageHistoryState> emit) async {
@@ -81,7 +95,7 @@ class MessageHistoryBloc extends Bloc<MessageHistoryEvent, MessageHistoryState> 
     emit(state.copyWith(status: MessageHistoryStatus.loading));
     try {
       final response = await _fetchPage(null);
-      emit(state.copyWith(
+      emit(MessageHistoryState(
         status: MessageHistoryStatus.loaded,
         messages: response.items,
         nextCursor: response.nextCursor,
@@ -95,7 +109,7 @@ class MessageHistoryBloc extends Bloc<MessageHistoryEvent, MessageHistoryState> 
         _tenantBloc.add(UpdateTenantToken(newToken));
 
         final response = await _fetchPage(null);
-        emit(state.copyWith(
+        emit(MessageHistoryState(
           status: MessageHistoryStatus.loaded,
           messages: response.items,
           nextCursor: response.nextCursor,
@@ -124,6 +138,7 @@ class MessageHistoryBloc extends Bloc<MessageHistoryEvent, MessageHistoryState> 
         status: MessageHistoryStatus.loaded,
         messages: newMessages,
         nextCursor: response.nextCursor,
+        clearCursor: response.nextCursor == null,
       ));
       _evaluatePolling(newMessages);
     } on TokenExpiredException {
@@ -140,6 +155,7 @@ class MessageHistoryBloc extends Bloc<MessageHistoryEvent, MessageHistoryState> 
           status: MessageHistoryStatus.loaded,
           messages: newMessages,
           nextCursor: response.nextCursor,
+          clearCursor: response.nextCursor == null,
         ));
         _evaluatePolling(newMessages);
       } catch (e) {

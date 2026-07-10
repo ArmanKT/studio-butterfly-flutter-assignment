@@ -1,16 +1,5 @@
-# flutter_assignment
+# Formwork SMS Console — Flutter Module
 
-A new Flutter project.
+This directory contains the Flutter source code for the Formwork SMS Console.
 
-## Getting Started
-
-This project is a starting point for a Flutter application.
-
-A few resources to get you started if this is your first Flutter project:
-
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
-
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+For complete documentation on architectural design decisions (ADR), local setup guides, security reviews, and testing instructions, please refer to the primary repository **[README.md](../README.md)** at the root of the project.

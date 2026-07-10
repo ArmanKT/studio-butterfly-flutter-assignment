@@ -1,18 +1,22 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:equatable/equatable.dart';
 import '../../../../core/exceptions/api_exceptions.dart';
 import '../../domain/models/sms_models.dart';
 import '../../domain/repositories/sms_repository.dart';
 import '../../data/repositories/network_sms_repository.dart';
 import 'tenant_bloc.dart';
 
-abstract class CostBreakdownEvent {}
+abstract class CostBreakdownEvent extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
 
 class FetchCostBreakdown extends CostBreakdownEvent {}
 
 enum CostBreakdownStatus { initial, loading, loaded, failure }
 
-class CostBreakdownState {
+class CostBreakdownState extends Equatable {
   final CostBreakdownStatus status;
   final CostBreakdown? breakdown;
   final String? error;
@@ -37,6 +41,9 @@ class CostBreakdownState {
       error: error ?? this.error,
     );
   }
+
+  @override
+  List<Object?> get props => [status, breakdown, error];
 }
 
 class CostBreakdownBloc extends Bloc<CostBreakdownEvent, CostBreakdownState> {
@@ -56,6 +63,9 @@ class CostBreakdownBloc extends Bloc<CostBreakdownEvent, CostBreakdownState> {
     _tenantSubscription = _tenantBloc.stream.listen((tenantState) {
       add(FetchCostBreakdown());
     });
+
+    // Fetch initial breakdown for the active tenant on startup
+    add(FetchCostBreakdown());
   }
 
   Future<void> _onFetchCostBreakdown(FetchCostBreakdown event, Emitter<CostBreakdownState> emit) async {

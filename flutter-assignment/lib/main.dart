@@ -32,7 +32,9 @@ void main() {
             create: (context) => ThemeCubit(),
           ),
           BlocProvider<TenantBloc>(
-            create: (context) => TenantBloc(),
+            create: (context) => TenantBloc(
+              repository: context.read<SmsRepository>(),
+            ),
           ),
           BlocProvider<SmsSendBloc>(
             create: (context) => SmsSendBloc(

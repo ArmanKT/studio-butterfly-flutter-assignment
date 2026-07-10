@@ -59,6 +59,7 @@ class _SmsFormWidgetState extends State<SmsFormWidget> {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('SmsFormWidget build called, state: ${context.read<SmsSendBloc>().state.status}');
     return BlocListener<SmsSendBloc, SmsSendState>(
       listener: (context, state) {
         if (state.status == SmsSendStatus.failure) {
@@ -107,50 +108,44 @@ class _SmsFormWidgetState extends State<SmsFormWidget> {
                     ),
                     const SizedBox(height: 16),
                     // Recipient Phone Input (with semantic support)
-                    Semantics(
-                      label: 'Recipient Phone number entry. Use international format starts with plus.',
-                      child: TextFormField(
-                        controller: _phoneController,
-                        decoration: const InputDecoration(
-                          labelText: 'Recipient Phone (E.164)',
-                          hintText: '+4915112345678',
-                          prefixIcon: Icon(Icons.phone_outlined),
-                          border: OutlineInputBorder(),
-                        ),
-                        keyboardType: TextInputType.phone,
-                        validator: (val) {
-                          if (val == null || val.trim().isEmpty) {
-                            return 'Recipient phone is required';
-                          }
-                          final phoneRegex = RegExp(r'^\+[1-9]\d{6,14}$');
-                          if (!phoneRegex.hasMatch(val.trim())) {
-                            return 'Must be valid E.164 format (e.g. +4915112345678)';
-                          }
-                          return null;
-                        },
+                    TextFormField(
+                      controller: _phoneController,
+                      decoration: const InputDecoration(
+                        labelText: 'Recipient Phone (E.164)',
+                        hintText: '+4915112345678',
+                        prefixIcon: Icon(Icons.phone_outlined),
+                        border: OutlineInputBorder(),
                       ),
+                      keyboardType: TextInputType.phone,
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) {
+                          return 'Recipient phone is required';
+                        }
+                        final phoneRegex = RegExp(r'^\+[1-9]\d{6,14}$');
+                        if (!phoneRegex.hasMatch(val.trim())) {
+                          return 'Must be valid E.164 format (e.g. +4915112345678)';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 16),
                     // Message Body Input
-                    Semantics(
-                      label: 'Message body text entry.',
-                      child: TextFormField(
-                        controller: _bodyController,
-                        decoration: const InputDecoration(
-                          labelText: 'Message Body',
-                          hintText: 'Enter your SMS content here...',
-                          prefixIcon: Icon(Icons.message_outlined),
-                          border: OutlineInputBorder(),
-                        ),
-                        maxLines: 3,
-                        keyboardType: TextInputType.multiline,
-                        validator: (val) {
-                          if (val == null || val.trim().isEmpty) {
-                            return 'Message body is required';
-                          }
-                          return null;
-                        },
+                    TextFormField(
+                      controller: _bodyController,
+                      decoration: const InputDecoration(
+                        labelText: 'Message Body',
+                        hintText: 'Enter your SMS content here...',
+                        prefixIcon: Icon(Icons.message_outlined),
+                        border: OutlineInputBorder(),
                       ),
+                      maxLines: 3,
+                      keyboardType: TextInputType.multiline,
+                      validator: (val) {
+                        if (val == null || val.trim().isEmpty) {
+                          return 'Message body is required';
+                        }
+                        return null;
+                      },
                     ),
                     const SizedBox(height: 20),
                     // Submit Button with Rate Limit state awareness

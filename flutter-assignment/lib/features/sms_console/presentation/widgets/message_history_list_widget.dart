@@ -198,11 +198,15 @@ class _MessageHistoryListWidgetState extends State<MessageHistoryListWidget> {
                                     ),
                                     title: Row(
                                       children: [
-                                        Text(
-                                          msg.recipient,
-                                          style: const TextStyle(fontWeight: FontWeight.bold),
+                                        Expanded(
+                                          child: Text(
+                                            msg.recipient,
+                                            style: const TextStyle(fontWeight: FontWeight.bold),
+                                            overflow: TextOverflow.ellipsis,
+                                            maxLines: 1,
+                                          ),
                                         ),
-                                        const Spacer(),
+                                        const SizedBox(width: 8),
                                         _buildStatusChip(msg.status),
                                       ],
                                     ),

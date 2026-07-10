@@ -34,7 +34,9 @@ void main() {
             create: (context) => ThemeCubit()..setTheme(ThemeMode.light),
           ),
           BlocProvider<TenantBloc>(
-            create: (context) => TenantBloc(),
+            create: (context) => TenantBloc(
+              repository: repository,
+            ),
           ),
           BlocProvider<SmsSendBloc>(
             create: (context) => SmsSendBloc(

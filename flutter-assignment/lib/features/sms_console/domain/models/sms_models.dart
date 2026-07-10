@@ -1,4 +1,6 @@
-class Money {
+import 'package:equatable/equatable.dart';
+
+class Money extends Equatable {
   final int microUnits; // 1 unit = 10000 microUnits (4 decimal places)
 
   const Money(this.microUnits);
@@ -31,12 +33,7 @@ class Money {
   Money operator *(int factor) => Money(microUnits * factor);
 
   @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      other is Money && runtimeType == other.runtimeType && microUnits == other.microUnits;
-
-  @override
-  int get hashCode => microUnits.hashCode;
+  List<Object?> get props => [microUnits];
 
   @override
   String toString() {
@@ -73,7 +70,7 @@ enum SmsStatus {
   String toApiString() => name.toUpperCase();
 }
 
-class SmsMessage {
+class SmsMessage extends Equatable {
   final String messageId;
   final String recipient;
   final SmsStatus status;
@@ -81,7 +78,7 @@ class SmsMessage {
   final Money cost;
   final DateTime sentAt;
 
-  SmsMessage({
+  const SmsMessage({
     required this.messageId,
     required this.recipient,
     required this.status,
@@ -129,9 +126,12 @@ class SmsMessage {
       sentAt: sentAt ?? this.sentAt,
     );
   }
+
+  @override
+  List<Object?> get props => [messageId, recipient, status, segmentCount, cost, sentAt];
 }
 
-class SmsSendResponse {
+class SmsSendResponse extends Equatable {
   final String messageId;
   final String provider;
   final SmsStatus status;
@@ -139,7 +139,7 @@ class SmsSendResponse {
   final Money cost;
   final String currency;
 
-  SmsSendResponse({
+  const SmsSendResponse({
     required this.messageId,
     required this.provider,
     required this.status,
@@ -169,14 +169,17 @@ class SmsSendResponse {
       'currency': currency,
     };
   }
+
+  @override
+  List<Object?> get props => [messageId, provider, status, segmentCount, cost, currency];
 }
 
-class CostBreakdownRow {
+class CostBreakdownRow extends Equatable {
   final String provider;
   final Money totalCost;
   final int messageCount;
 
-  CostBreakdownRow({
+  const CostBreakdownRow({
     required this.provider,
     required this.totalCost,
     required this.messageCount,
@@ -197,14 +200,17 @@ class CostBreakdownRow {
       'messageCount': messageCount,
     };
   }
+
+  @override
+  List<Object?> get props => [provider, totalCost, messageCount];
 }
 
-class CostBreakdown {
+class CostBreakdown extends Equatable {
   final String currency;
   final Money totalCost;
   final List<CostBreakdownRow> rows;
 
-  CostBreakdown({
+  const CostBreakdown({
     required this.currency,
     required this.totalCost,
     required this.rows,
@@ -228,13 +234,16 @@ class CostBreakdown {
       'rows': rows.map((r) => r.toJson()).toList(),
     };
   }
+
+  @override
+  List<Object?> get props => [currency, totalCost, rows];
 }
 
-class MessagesPageResponse {
+class MessagesPageResponse extends Equatable {
   final List<SmsMessage> items;
   final String? nextCursor;
 
-  MessagesPageResponse({
+  const MessagesPageResponse({
     required this.items,
     this.nextCursor,
   });
@@ -248,4 +257,7 @@ class MessagesPageResponse {
       nextCursor: json['nextCursor'] as String?,
     );
   }
+
+  @override
+  List<Object?> get props => [items, nextCursor];
 }

@@ -11,6 +11,7 @@ class SmsConsoleScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    debugPrint('SmsConsoleScreen build called');
     return BlocBuilder<ThemeCubit, ThemeMode>(
       builder: (context, themeMode) {
         return BlocBuilder<TenantBloc, TenantState>(
@@ -55,31 +56,69 @@ class SmsConsoleScreen extends StatelessWidget {
                     padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
                     child: Card(
                       margin: EdgeInsets.zero,
-                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
+                      elevation: 0.5,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(16),
+                        side: BorderSide(
+                          color: Theme.of(context).brightness == Brightness.light
+                              ? Colors.grey.withValues(alpha: 0.15)
+                              : Colors.white.withValues(alpha: 0.08),
+                          width: 1,
+                        ),
+                      ),
                       child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                        padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
                         child: Row(
                           children: [
-                            const Icon(Icons.corporate_fare, color: Colors.grey),
-                            const SizedBox(width: 12),
-                            Text(
-                              'Tenant Scope:',
-                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                            // Circular icon container
+                            Container(
+                              padding: const EdgeInsets.all(8),
+                              decoration: BoxDecoration(
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.corporate_fare_rounded,
+                                color: Theme.of(context).colorScheme.primary,
+                                size: 20,
+                              ),
                             ),
                             const SizedBox(width: 12),
+                            Text(
+                              'Tenant Scope',
+                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.8),
+                                  ),
+                            ),
+                            const SizedBox(width: 16),
+                            // Vertical divider
+                            Container(
+                              height: 24,
+                              width: 1,
+                              color: Colors.grey.withValues(alpha: 0.2),
+                            ),
+                            const SizedBox(width: 16),
+                            // Dropdown in customized style
                             Expanded(
                               child: DropdownButtonHideUnderline(
                                 child: DropdownButton<String>(
                                   value: tenantState.activeTenant.id,
                                   isExpanded: true,
+                                  icon: Icon(
+                                    Icons.keyboard_arrow_down_rounded,
+                                    color: Theme.of(context).colorScheme.primary,
+                                  ),
+                                  dropdownColor: Theme.of(context).colorScheme.surface,
+                                  borderRadius: BorderRadius.circular(16),
                                   items: tenantState.availableTenants.map((tenant) {
                                     return DropdownMenuItem<String>(
                                       value: tenant.id,
                                       child: Text(
                                         tenant.name,
-                                        style: const TextStyle(fontWeight: FontWeight.w500),
+                                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                              fontWeight: FontWeight.w600,
+                                            ),
                                       ),
                                     );
                                   }).toList(),

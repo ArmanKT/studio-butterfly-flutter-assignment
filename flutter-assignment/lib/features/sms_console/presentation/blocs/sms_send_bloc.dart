@@ -1,22 +1,29 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:equatable/equatable.dart';
 import '../../../../core/exceptions/api_exceptions.dart';
 import '../../domain/repositories/sms_repository.dart';
 import '../../data/repositories/network_sms_repository.dart';
 import 'tenant_bloc.dart';
 
-abstract class SmsSendEvent {}
+abstract class SmsSendEvent extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
 
 class SendSmsRequested extends SmsSendEvent {
   final String to;
   final String body;
   SendSmsRequested({required this.to, required this.body});
+
+  @override
+  List<Object?> get props => [to, body];
 }
 
 class ClearSendSmsStatus extends SmsSendEvent {}
 
 enum SmsSendStatus { initial, loading, success, failure }
 
-class SmsSendState {
+class SmsSendState extends Equatable {
   final SmsSendStatus status;
   final String? error;
   final int? rateLimitedSeconds;
@@ -35,6 +42,9 @@ class SmsSendState {
         error: error,
         rateLimitedSeconds: rateLimitedSeconds,
       );
+
+  @override
+  List<Object?> get props => [status, error, rateLimitedSeconds];
 }
 
 class SmsSendBloc extends Bloc<SmsSendEvent, SmsSendState> {

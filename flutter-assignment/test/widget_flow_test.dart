@@ -30,7 +30,9 @@ void main() {
       child: MultiBlocProvider(
         providers: [
           BlocProvider<TenantBloc>(
-            create: (context) => TenantBloc(),
+            create: (context) => TenantBloc(
+              repository: repository,
+            ),
           ),
           BlocProvider<SmsSendBloc>(
             create: (context) => SmsSendBloc(

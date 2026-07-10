@@ -33,7 +33,7 @@ class MockHttpClient extends http.BaseClient {
   void _seedInitialData() {
     const tenantA = '9f1c2d3e-4a5b-6c7d-8e9f-0a1b2c3d4e5f'; // Seeding 65 messages to test pagination
     final messages = <Map<String, dynamic>>[];
-    final now = DateTime.now();
+    final now = DateTime.now().toUtc();
 
     for (int i = 1; i <= 65; i++) {
       final isEven = i % 2 == 0;

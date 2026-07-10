@@ -1,21 +1,34 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:equatable/equatable.dart';
 import '../../domain/models/tenant.dart';
+import '../../domain/repositories/sms_repository.dart';
 
-abstract class TenantEvent {}
+abstract class TenantEvent extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
 
 class SwitchTenant extends TenantEvent {
   final Tenant tenant;
   SwitchTenant(this.tenant);
+
+  @override
+  List<Object?> get props => [tenant];
 }
 
 class UpdateTenantToken extends TenantEvent {
   final String token;
   UpdateTenantToken(this.token);
+
+  @override
+  List<Object?> get props => [token];
 }
 
 class ForceExpireToken extends TenantEvent {}
 
-class TenantState {
+class LoadTenants extends TenantEvent {}
+
+class TenantState extends Equatable {
   final List<Tenant> availableTenants;
   final Tenant activeTenant;
 
@@ -23,11 +36,17 @@ class TenantState {
     required this.availableTenants,
     required this.activeTenant,
   });
+
+  @override
+  List<Object?> get props => [availableTenants, activeTenant];
 }
 
 class TenantBloc extends Bloc<TenantEvent, TenantState> {
-  TenantBloc()
-      : super(
+  final SmsRepository _repository;
+
+  TenantBloc({required SmsRepository repository})
+      : _repository = repository,
+        super(
           const TenantState(
             availableTenants: [
               Tenant(
@@ -57,27 +76,50 @@ class TenantBloc extends Bloc<TenantEvent, TenantState> {
             ),
           ),
         ) {
-    on<SwitchTenant>((event, emit) {
+    on<LoadTenants>(_onLoadTenants);
+    on<SwitchTenant>(_onSwitchTenant);
+    on<UpdateTenantToken>(_onUpdateTenantToken);
+    on<ForceExpireToken>(_onForceExpireToken);
+
+    // Dynamic load of available tenants from repository
+    add(LoadTenants());
+  }
+
+  Future<void> _onLoadTenants(LoadTenants event, Emitter<TenantState> emit) async {
+    try {
+      final tenants = await _repository.getAvailableTenants();
+      final active = tenants.any((t) => t.id == state.activeTenant.id)
+          ? tenants.firstWhere((t) => t.id == state.activeTenant.id)
+          : tenants.first;
       emit(TenantState(
-        availableTenants: state.availableTenants,
-        activeTenant: event.tenant,
+        availableTenants: tenants,
+        activeTenant: active,
       ));
-    });
+    } catch (_) {
+      // Fallback
+    }
+  }
 
-    on<UpdateTenantToken>((event, emit) {
-      final updatedActive = state.activeTenant.copyWith(token: event.token);
-      final updatedList = state.availableTenants.map((t) {
-        return t.id == state.activeTenant.id ? updatedActive : t;
-      }).toList();
+  void _onSwitchTenant(SwitchTenant event, Emitter<TenantState> emit) {
+    emit(TenantState(
+      availableTenants: state.availableTenants,
+      activeTenant: event.tenant,
+    ));
+  }
 
-      emit(TenantState(
-        availableTenants: updatedList,
-        activeTenant: updatedActive,
-      ));
-    });
+  void _onUpdateTenantToken(UpdateTenantToken event, Emitter<TenantState> emit) {
+    final updatedActive = state.activeTenant.copyWith(token: event.token);
+    final updatedList = state.availableTenants.map((t) {
+      return t.id == state.activeTenant.id ? updatedActive : t;
+    }).toList();
 
-    on<ForceExpireToken>((event, emit) {
-      add(UpdateTenantToken('expired_token'));
-    });
+    emit(TenantState(
+      availableTenants: updatedList,
+      activeTenant: updatedActive,
+    ));
+  }
+
+  void _onForceExpireToken(ForceExpireToken event, Emitter<TenantState> emit) {
+    add(UpdateTenantToken('expired_token'));
   }
 }
