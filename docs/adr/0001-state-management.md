@@ -1,4 +1,4 @@
-# ADR 0001: State Management Choice and Responsive Layout Strategy
+# ADR 0001: State Management and Responsive Layout Decisions
 
 * **Status:** Approved
 * **Date:** 2026-07-10
@@ -6,45 +6,44 @@
 
 ## Context
 
-The Formwork SMS Console requires:
-1. Decoupling business logic from widgets to ensure clean, maintainable patterns.
-2. Robust multi-tenant state isolation: changing tenants must immediately wipe and refresh all logs, billing details, and API configurations.
-3. Managing asynchronous events, loading states, rate-limiting (429) cooldowns, and automatic auth token refreshes.
-4. Seamlessly scaling across mobile (360px) and desktop (1400px) widths.
+The Formwork SMS Console needed to satisfy these conditions:
+1. **Clean Separation:** Keep business logic out of the UI widgets to make the code easy to maintain.
+2. **Tenant Isolation:** When switching tenants, the app must immediately clear the logs, cost breakdown, and tokens of the old tenant to prevent data leaks.
+3. **Error & Loading States:** Cleanly handle loading indicators, API errors, rate-limiting (429) wait times, and token refreshes.
+4. **Adaptive UI:** Look great on a small mobile screen (360px) and a large desktop screen (1400px).
 
-## Decision
+## Decisions Made
 
-We chose **BLoC (Business Logic Component)** as our state management framework and implemented a **LayoutBuilder Adaptive Shell** for responsiveness.
+We decided to use **BLoC (Business Logic Component)** for managing state, and a **LayoutBuilder** for the responsive layout.
 
-### 1. State Management (BLoC)
+### 1. Why BLoC?
 
-* **Event-Driven Architecture:** BLoC provides a strict structure where the UI dispatches events and BLoC emits immutable states, enforcing unidirectional data flow.
-* **Multi-Tenant Scoping:** By subscribing the `MessageHistoryBloc` and `CostBreakdownBloc` to the `TenantBloc`'s stream in their constructors, they automatically react to tenant switch events, clear cache, and reload state, guaranteeing zero cross-tenant state leaks.
-* **Context-Free Testing:** BLoCs do not depend on the widget context, allowing us to inspect states and test business logic easily in unit tests.
-* **Separation of Concerns:** Business logic is entirely contained within BLoC classes, keeping the widgets purely representational.
+* **Strict Rules:** BLoC forces a clear flow. The UI sends *events*, and the BLoC responds with *states*.
+* **Tenant Safety:** We linked the history and cost BLoCs directly to the `TenantBloc` stream. When the tenant changes, the BLoCs automatically catch the event, wipe the old data, and fetch the new tenant's data. This guarantees no data leaks.
+* **Easy Testing:** BLoCs do not depend on the UI code, so we can test all business logic easily with simple unit tests.
 
-### 2. Responsive Layout (LayoutBuilder Adaptive Shell)
+### 2. Why LayoutBuilder?
 
-* **Breakpoint:** We defined a breakpoint of `800px` to partition mobile/tablet and desktop screens.
-* **Mobile (< 800px):** Employs a `DefaultTabController` with two tabs (Console: SMS form & costs; Logs: paginated sent history). This prevents vertical layout overcrowding and keeps scrolling clean on small screens.
-* **Desktop (>= 800px):** Renders a side-by-side two-column grid. Left column holds the input form and monthly billing total/table; right column displays a full-height paginated transaction list.
+* **Breakpoint:** We chose `800px` as our screen width breakpoint.
+* **Mobile View (< 800px):** We show a two-tab view (Console tab and Logs tab). This keeps the screen clean and easy to use on small phones.
+* **Desktop View (>= 800px):** We show a side-by-side grid layout. The left column holds the form and cost table, and the right column shows the scrollable message logs list.
 
 ---
 
-## Alternatives Considered
+## Other Options We Rejected
 
 ### 1. Riverpod
-* *Pros:* Compile-time safety and easy state isolation using provider overrides.
-* *Cons:* Non-standard syntax and reliance on global provider declarations. For teams accustomed to standard reactive Streams or BLoC, Riverpod introduces unnecessary complexity.
+* *Pros:* Very safe and easy to use.
+* *Cons:* Uses a non-standard syntax that can be difficult for teams who are already familiar with standard streams or BLoC patterns. We chose BLoC to keep things standard and easy to read.
 
-### 2. Provider (InheritedWidget Wrapper)
-* *Pros:* Simple, native feeling.
-* *Cons:* Depends on the widget tree's `BuildContext` to lookup state, making it prone to runtime `ProviderNotFoundException` errors. It also lacks BLoC's explicit event-state audit trails.
+### 2. Provider
+* *Pros:* Simple and built-in.
+* *Cons:* It relies on the widget context to find states. This can cause runtime errors if a developer tries to read a provider from a widget that does not have access to it. It also lacks BLoC's strict event-state flow.
 
 ---
 
 ## Consequences
 
-* **Testability:** State streams can be easily tested using standard stream assertions and assertions on emitted states.
-* **Correctness:** Zero-leak multi-tenancy is guaranteed because the state layer resets itself automatically on tenant switches.
-* **Aesthetics:** The UI is clean, responsive, and conforms to Material 3 guidelines.
+* **Better Code Quality:** The code is modular, fully testable, and robust.
+* **Tenant Security:** All tenant switching is completely secure with no caching leaks.
+* **Responsiveness:** The app automatically resizes and looks excellent on both mobile and desktop screens.
