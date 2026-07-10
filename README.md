@@ -129,13 +129,16 @@ Fetch package dependencies:
 flutter pub get
 ```
 
-Run on Chrome (web) or macOS (desktop):
+Run on Android, macOS, or Windows (desktop):
 ```bash
-# Run Web
-flutter run -d chrome
+# Run Android (connect a device or start an emulator first)
+flutter run
 
 # Run macOS Desktop
 flutter run -d macos
+
+# Run Windows Desktop
+flutter run -d windows
 ```
 
 ### Running the Tests
