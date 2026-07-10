@@ -1,0 +1,8 @@
+.DS_Store
+.idea/
+.vscode/
+*.log
+.gemini/
+antigravity-ide/
+build/
+.dart_tool/
